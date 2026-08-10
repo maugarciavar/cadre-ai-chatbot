@@ -53,6 +53,24 @@ def test_chat_rejects_oversized_message(monkeypatch):
     assert called is False  # never reached the OpenRouter service
 
 
+def test_chat_rejects_oversized_history_content(monkeypatch):
+    called = False
+
+    def fake_get_chat_result(history, message):
+        nonlocal called
+        called = True
+        return ChatResult(reply="unused", escalate=False)
+
+    monkeypatch.setattr(chat_router, "get_chat_result", fake_get_chat_result)
+
+    too_long = "a" * (settings.max_message_length + 1)
+    history = [{"role": "user", "content": too_long}]
+    response = client.post("/api/chat", json={"message": "hi", "history": history})
+
+    assert response.status_code == 422
+    assert called is False  # never reached the OpenRouter service
+
+
 def test_chat_truncates_history_to_configured_limit(monkeypatch):
     captured = {}
 

@@ -18,6 +18,12 @@ def chat(request: ChatRequest) -> ChatResult:
     # Keep only the most recent turns -- a simple cap, not token counting.
     history = request.history[-settings.max_history_messages :]
 
+    if any(len(m.content) > settings.max_message_length for m in history):
+        raise HTTPException(
+            status_code=422,
+            detail=f"A message in the conversation history exceeds the {settings.max_message_length} character limit.",
+        )
+
     try:
         return get_chat_result(history=history, message=request.message)
     except OpenRouterServiceError as exc:

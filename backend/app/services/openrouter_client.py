@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from openai import APIConnectionError, APIError, APITimeoutError, OpenAI, RateLimitError
+from openai import OpenAI, OpenAIError
 
 from app.config import settings
 from app.knowledge.system_prompt import build_system_prompt
@@ -42,7 +42,11 @@ def get_chat_result(history: list[ChatMessage], message: str) -> ChatResult:
             messages=messages,
             response_format=ChatResult,
         )
-    except (APITimeoutError, APIConnectionError, RateLimitError, APIError) as exc:
+    except OpenAIError as exc:
+        # Catches every SDK-raised error: timeouts, connection failures, rate
+        # limits, API errors, and the structured-output-specific
+        # LengthFinishReasonError / ContentFilterFinishReasonError (which
+        # subclass OpenAIError directly, not APIError).
         raise OpenRouterServiceError(f"OpenRouter request failed: {exc}") from exc
 
     parsed = response.choices[0].message.parsed

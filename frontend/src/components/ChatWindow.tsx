@@ -36,7 +36,12 @@ export function ChatWindow() {
         { role: 'assistant', content: result.reply, escalate: result.escalate },
       ])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+      // Roll back the optimistic user message on failure -- otherwise it
+      // lingers with no assistant reply, and the next send would put two
+      // consecutive "user" turns in the history sent to the backend.
+      setMessages((prev) => prev.slice(0, -1))
+      const detail = err instanceof Error ? err.message : 'please try again.'
+      setError(`Couldn't send "${text}" -- ${detail}`)
     } finally {
       setIsLoading(false)
     }

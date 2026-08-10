@@ -1,6 +1,6 @@
 import httpx
 import pytest
-from openai import APIConnectionError
+from openai import APIConnectionError, OpenAIError
 
 from app.models import ChatMessage, ChatResult
 from app.services import openrouter_client as oc
@@ -81,6 +81,22 @@ def test_get_chat_result_sends_history_then_new_message(monkeypatch):
 def test_get_chat_result_wraps_sdk_errors(monkeypatch):
     fake_request = httpx.Request("POST", "https://openrouter.ai/api/v1/chat/completions")
     fake_client = _FakeClient(exc=APIConnectionError(request=fake_request))
+    monkeypatch.setattr(oc, "_get_client", lambda: fake_client)
+
+    with pytest.raises(oc.OpenRouterServiceError):
+        oc.get_chat_result(history=[], message="hello")
+
+
+def test_get_chat_result_wraps_any_openai_error(monkeypatch):
+    """Catching OpenAIError (not just APIError/APITimeoutError/etc.) means
+    structured-output-specific errors like LengthFinishReasonError and
+    ContentFilterFinishReasonError -- which subclass OpenAIError directly,
+    not APIError -- get wrapped too, instead of surfacing as a raw 500."""
+
+    class _SomeOtherOpenAIError(OpenAIError):
+        pass
+
+    fake_client = _FakeClient(exc=_SomeOtherOpenAIError("model hit the token limit"))
     monkeypatch.setattr(oc, "_get_client", lambda: fake_client)
 
     with pytest.raises(oc.OpenRouterServiceError):
