@@ -63,7 +63,7 @@ deliberately left unchanged after a quoted phrase couldn't be verified
 against any available source.
 Commit: "Add curated Cadre knowledge base and system prompt assembly"
 
-## Phase 2 — Chat endpoint + OpenRouter integration (60–75 min)
+## Phase 2 — Chat endpoint + OpenRouter integration (60–75 min) — ✅ DONE 2026-08-10
 Goal: wire the real conversation path with typed, structured output, and
 a configurable, not hardcoded, model.
 
@@ -74,21 +74,28 @@ Chat Completions API only (no Responses API), so the plan below was
 adjusted: `client.chat.completions.parse()` instead of
 `client.responses.parse()`, `base_url` pointed at OpenRouter, and
 `OPENAI_*` env vars/module names renamed to `OPENROUTER_*` throughout.
-- [ ] `ChatMessage` / `ChatRequest` / `ChatResult` Pydantic models
+- [x] `ChatMessage` / `ChatRequest` / `ChatResult` Pydantic models
       (`ChatResult`: `reply: str`, `escalate: bool`)
-- [ ] `services/openrouter_client.py`: model id read from
+- [x] `services/openrouter_client.py`: model id read from
       `OPENROUTER_MODEL` env var (single configured value, no automatic
       fallback logic), structured output bound to `ChatResult` via
       `chat.completions.parse()`. This is the only module that imports
       the OpenAI SDK.
-- [ ] `routers/chat.py` (`POST /api/chat`): enforce `MAX_HISTORY_MESSAGES`
+- [x] `routers/chat.py` (`POST /api/chat`): enforce `MAX_HISTORY_MESSAGES`
       (truncate oldest turns) and `MAX_MESSAGE_LENGTH` (reject), then
       delegate to `services/openrouter_client.py` — no direct SDK calls
       in the route
-- [ ] Unit tests against a mocked client: normal path, escalation path,
-      history-truncation, oversized-message handling
-Verify: `pytest` green; manual curl smoke test against the deployed
-backend Railway URL once `OPENROUTER_API_KEY` is set.
+- [x] Unit tests against a mocked client: normal path, escalation path,
+      history-truncation, oversized-message handling (15 tests total,
+      covering both the route and the service layer)
+Verify: **15/15 pytest pass.** Live smoke test against the deployed
+backend with the real `OPENROUTER_API_KEY`, covering 6 scenarios: normal
+grounded Q&A, pricing (confident tone + escalate:true, matching the
+Phase 1 review fix), a genuinely out-of-scope question (honest escalation,
+no invented policy), a greeting (no escalation), multi-turn history
+(correctly used prior context to identify "that industry" and cited the
+right case study), and the oversized-message guardrail (422, confirmed
+the request never reached OpenRouter).
 Commit: "Add /api/chat endpoint with structured OpenRouter responses and history/length guardrails"
 
 ## Phase 3 — Frontend chat UI (60–75 min)
