@@ -13,21 +13,28 @@ escalation, client-held history with server-side length/count limits,
 public deployment as two Railway services, backend tests + golden-set
 eval.
 
-## Phase 0 — Deploy the skeleton (45–60 min)
+## Phase 0 — Deploy the skeleton (45–60 min) — ✅ DONE 2026-08-10
 Goal: prove two Railway services (frontend + backend), deployed from the
 same monorepo, talk to each other — before any chatbot logic exists.
-- [ ] `backend/` FastAPI app with `GET /api/health`
-- [ ] `frontend/` Vite React TS app that fetches and displays it
-- [ ] Create two Railway services from this repo: backend (Root Directory
-      `backend/`) and frontend (Root Directory `frontend/`)
-- [ ] Set backend service env vars: `OPENAI_API_KEY` (unused until Phase 2),
-      `ALLOWED_ORIGINS`
-- [ ] Set frontend service env var: `VITE_API_URL` pointing at the backend
+- [x] `backend/` FastAPI app with `GET /api/health`
+- [x] `frontend/` Vite React TS app that fetches and displays it
+- [x] Create two Railway services from this repo: backend (Root Directory
+      `backend/`) and frontend (Root Directory `frontend/`) — separate
+      Railway project `cadre-ai-chatbot`, isolated from unrelated projects
+      in the same account
+- [x] Set backend service env vars: `OPENAI_API_KEY` (placeholder, unused
+      until Phase 2), `ALLOWED_ORIGINS`
+- [x] Set frontend service env var: `VITE_API_URL` pointing at the backend
       service's Railway URL
-- [ ] Add the frontend Railway URL to backend `ALLOWED_ORIGINS`, redeploy
+- [x] Add the frontend Railway URL to backend `ALLOWED_ORIGINS`, redeploy
 Verify: frontend Railway URL shows a live "backend status: ok" fetched
-from the backend Railway URL.
-Commit: "Deploy skeleton: FastAPI health check + React shell as two Railway services"
+from the backend Railway URL. **Confirmed** — CORS validated with the
+real deployed origin, and the built JS bundle was checked directly to
+confirm it targets the correct backend URL.
+- Backend: https://backend-production-900e.up.railway.app (`/api/health` → `{"status":"ok"}`)
+- Frontend: https://frontend-production-82ea.up.railway.app
+Commits: "Add backend skeleton: FastAPI health check endpoint",
+"Add frontend skeleton: Vite React TS shell with backend health check"
 
 ## Phase 1 — Knowledge layer & system prompt (45 min)
 Goal: ground the bot in real, verifiable Cadre AI content. The challenge
