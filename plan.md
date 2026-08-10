@@ -36,23 +36,31 @@ confirm it targets the correct backend URL.
 Commits: "Add backend skeleton: FastAPI health check endpoint",
 "Add frontend skeleton: Vite React TS shell with backend health check"
 
-## Phase 1 — Knowledge layer & system prompt (45 min)
+## Phase 1 — Knowledge layer & system prompt (45 min) — ✅ DONE 2026-08-10
 Goal: ground the bot in real, verifiable Cadre AI content. The challenge
 doc is authoritative; the live site only supplements factual gaps.
-- [ ] Explore subagent reviews
-      `docs/Cadre_AI_Chatbot_Take_Home_Candidate.docx.pdf` (authoritative)
-      and supplements only factual gaps (what Cadre does, industries,
-      services) from cadreai.com — must NOT infer pricing, customers, case
-      studies, certifications, security guarantees, or policies that
-      aren't explicitly stated
-- [ ] Write `backend/app/knowledge/cadre_knowledge.md`
-- [ ] Write `system_prompt.py`: persona + knowledge + explicit "answer
-      only from curated knowledge; acknowledge uncertainty and escalate
-      when unsupported" instruction
-- [ ] Unit test: assembled prompt contains required knowledge fragments
-      and the escalation instruction
-Verify: test passes; knowledge file reviewed by hand — no unsupported
-claims present.
+- [x] Explore subagent reviews the challenge brief (authoritative) and
+      supplements only factual gaps from cadreai.com (verified with two
+      independent direct fetches for the highest-stakes facts: contact
+      info, case-study metrics) — no invented pricing, customers, case
+      studies, certifications, security guarantees, or policies
+- [x] Write `backend/app/knowledge/cadre_knowledge.md` — pricing,
+      certifications, and exact AI Maturity Index/portal mechanics
+      explicitly marked "not published" rather than left as gaps
+- [x] Write `system_prompt.py`: persona + knowledge + grounding rules.
+      Revised after manual review: `escalate: true` is explicitly defined
+      as "not a failure signal," with a worked pricing example, and a
+      rule for when `escalate: false` is correct (answer already fully
+      resolves the question)
+- [x] Unit test: assembled prompt contains required knowledge fragments,
+      explicitly-unpublished facts, and the non-failure escalation
+      language (6 tests total)
+Verify: **6/6 tests pass.** Knowledge file reviewed by hand twice — once
+before the manual content review, once after applying its two fixes (case
+study metrics trimmed to one headline figure each; escalation tone
+rewritten). No unsupported claims present; AI Maturity Index section
+deliberately left unchanged after a quoted phrase couldn't be verified
+against any available source.
 Commit: "Add curated Cadre knowledge base and system prompt assembly"
 
 ## Phase 2 — Chat endpoint + OpenAI integration (60–75 min)
