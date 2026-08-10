@@ -3,8 +3,10 @@
 A customer support chatbot for [Cadre AI](https://cadreai.com), an AI strategy and implementation consultancy — built for Cadre's AI Engineer & FDE take-home challenge.
 
 **Live app:** https://frontend-production-82ea.up.railway.app
-**Backend API:** https://backend-production-900e.up.railway.app
+**Backend API docs (Swagger UI):** https://backend-production-900e.up.railway.app/docs
 **Repo:** https://github.com/maugarciavar/cadre-ai-chatbot
+
+> The backend's bare root URL (no path) returns 404 by design — there's no `/` route, only `/api/health`, `/api/chat`, and the auto-generated `/docs` / `/openapi.json`. Use the Swagger link above to explore the API interactively.
 
 See [`CLAUDE.md`](CLAUDE.md) for the full engineering conventions and guardrails, and [`plan.md`](plan.md) for the phased build log with verification results for every phase.
 
@@ -15,7 +17,7 @@ React (TS, Vite) → FastAPI (Python) → OpenRouter (OpenAI-compatible API)
 ```
 
 - **Frontend:** React + TypeScript + Vite. Plain React state — no Redux/Zustand, no router, no UI framework.
-- **Backend:** Python + FastAPI + Pydantic, fully stateless (no database).
+- **Backend:** Python + FastAPI + Pydantic, fully stateless (no database). The auto-generated Swagger docs are hand-annotated — real field descriptions, documented `422`/`503` error responses, no bare untyped dicts — not just FastAPI's untouched defaults.
 - **AI provider:** [OpenRouter](https://openrouter.ai), not OpenAI directly (see [Model & provider choice](#model--provider-choice) below).
 - **Deployment:** two independent Railway services from this one monorepo — `frontend/` and `backend/` each as their own service, split via Railway's per-service Root Directory setting.
 - **Knowledge:** a single curated markdown file compiled into the system prompt at request time — not RAG, not a vector database. The knowledge base is ~8 topics; retrieval infrastructure would be over-engineering at this scope.
@@ -102,9 +104,10 @@ The assessment's provided API key is an **OpenRouter** key (confirmed with the r
 
 Two distinct layers, deliberately not merged:
 
-1. **Unit tests (`pytest`, 20 tests)** — the OpenRouter client is mocked, so these run with no network calls and no cost. They cover: system-prompt assembly and grounding-rule presence, the chat endpoint's request validation (message-length rejection, history truncation), escalation-path handling, and SDK-error-to-HTTP-error translation.
+1. **Unit tests (`pytest`, 17 tests)** — the OpenRouter client is mocked, so these run with no network calls and no cost. They cover: system-prompt assembly and grounding-rule presence, the chat endpoint's request validation (message-length rejection, history truncation), escalation-path handling, and SDK-error-to-HTTP-error translation.
 2. **Golden-set evaluation (`eval_golden_set.py`, 10 scenarios)** — a *scripted*, not automated-CI, check that makes real calls to the real deployed model. Covers the challenge brief's own example scenarios (what Cadre does, industries, booking a call, the AI Maturity Index, LLM/data-security approach, an unanswerable question) plus pricing/certification escalation tone and multi-turn context resolution. Stable at 10/10 across repeated runs at time of writing.
    - **Known limitation:** the eval's forbidden-keyword checks are naive substring matches, and two scenarios initially "failed" only because the check couldn't distinguish the model *honestly citing an example of what's unknown* ("...whether it's a self-serve quiz or consultant-led is not specified") from *asserting it as fact*. A proper LLM-judge eval would handle this correctly; substring matching can't. Scenarios were corrected after manually reading the actual replies rather than trusting the naive check — worth knowing before trusting this script's output blindly on a knowledge-file edit.
+3. **Linting & CI** — `ruff` (backend, zero-config) and `oxlint` (frontend, part of the Vite scaffold) run locally and in `.github/workflows/ci.yml`, which runs backend lint+tests and frontend lint+build on every push/PR. No live OpenRouter calls in CI — `eval_golden_set.py` isn't pytest-discoverable, so it's excluded by construction, not by special-casing.
 
 Frontend verification was done by driving a real headless-Chromium browser (Playwright) against the live deployed URL and inspecting screenshots — not just checking that `fetch` calls returned 200. This caught one real bug (see [Trade-offs](#key-trade-offs--out-of-scope) below) that a curl-only check would have missed entirely.
 
