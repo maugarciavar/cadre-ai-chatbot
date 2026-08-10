@@ -7,7 +7,38 @@ from app.services.openrouter_client import OpenRouterServiceError, get_chat_resu
 router = APIRouter()
 
 
-@router.post("/api/chat", response_model=ChatResult)
+@router.post(
+    "/api/chat",
+    response_model=ChatResult,
+    summary="Send a chat message",
+    description=(
+        "Answers a message using Cadre AI's curated knowledge. Stateless -- "
+        "send the full prior conversation as `history` with each request."
+    ),
+    responses={
+        422: {
+            "description": (
+                "`message`, or a message in `history`, exceeds the configured "
+                "character limit."
+            ),
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Message exceeds the 2000 character limit."}
+                }
+            },
+        },
+        503: {
+            "description": "The OpenRouter API call failed, timed out, or returned an unusable response.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Cadre AI chatbot is temporarily unavailable. Please try again shortly."
+                    }
+                }
+            },
+        },
+    },
+)
 def chat(request: ChatRequest) -> ChatResult:
     if len(request.message) > settings.max_message_length:
         raise HTTPException(
