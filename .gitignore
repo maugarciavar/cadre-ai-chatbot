@@ -7,6 +7,7 @@
 
 # === Local reference material (keep locally, do not distribute) ===
 docs/
+.scratch/
 
 # === Python (backend) ===
 __pycache__/
@@ -46,5 +47,4 @@ Thumbs.db
 logs/
 
 # === Deployment ===
-.vercel/
 .railway/
