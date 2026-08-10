@@ -125,30 +125,46 @@ container) — invisible to a curl-only check, caught by looking at an
 actual screenshot.
 Commit: "Build chat UI with escalation handling"
 
-## Phase 4 — Eval pass, polish, compliance review, README (30–45 min)
+## Phase 4 — Eval pass, polish, compliance review, README (30–45 min) — ✅ DONE 2026-08-10
 Goal: verify behavior against the brief's own scenarios, confirm the
 challenge's own deliverables are met, then make it presentable.
-- [ ] Run the golden-set eval script against the currently configured
-      `OPENAI_MODEL` on the deployed instance; if grounding/escalation is
-      insufficient, manually try a stronger `OPENAI_MODEL` value (env var
-      change only, no code change) and re-run
-- [ ] `/code-review` pass on the full diff
-- [ ] Final challenge-compliance review pass (subagent): confirms the
-      deployed URL works, `CLAUDE.md` and `plan.md` are present at repo
-      root, no secrets/`.env` files are committed, out-of-scope items are
-      genuinely absent, README is present and accurate
-- [ ] Light UI polish (responsive layout, favicon, page title). Note:
-      the challenge brief itself says nothing about brand/logo usage --
-      an earlier draft of this plan self-imposed a "no imitation of
-      Cadre's brand" rule out of general caution, but this is Cadre's
-      own chatbot for Cadre AI, not third-party impersonation, so
-      Cadre's real favicon is used directly (confirmed with the
-      candidate before doing so)
-- [ ] README with setup / run / deploy instructions (two Railway
-      services)
-Verify: all golden-set scenarios behave as expected on the live URL;
-compliance review has no open findings.
-Commit: "Polish, README, final eval and compliance review"
+- [x] Golden-set eval script (`tests/eval_golden_set.py`, 10 scenarios)
+      run against the deployed `OPENROUTER_MODEL`. Two initial "failures"
+      turned out to be wrong test expectations, not app bugs (see below)
+      — corrected the eval, not the app. 10/10 passing, stable across
+      repeated runs, both before and after the code-review fixes below.
+- [x] `/code-review high` pass on the full diff (`cd2f6d3..HEAD`) — 8
+      parallel finder agents, manually triaged since the skill's own
+      verification/synthesis step never returned a result (waited,
+      proceeded per candidate's explicit instruction). 3 real,
+      low-regression-risk bugs fixed; the rest were style opinions,
+      already-decided trade-offs, or non-issues given Railway's actual
+      deployment model (see PR/commit for full triage)
+- [x] Final challenge-compliance review pass (subagent): confirmed
+      deployed URLs work, `CLAUDE.md`/`plan.md`/README present and
+      accurate (spot-checked, not just assumed), no secrets in git
+      history, out-of-scope items genuinely absent from the codebase
+      (grepped, not just asserted). Caught one real issue: a favicon
+      change was uncommitted at audit time — fixed immediately.
+- [x] Light UI polish (favicon, page title, meta description, mobile
+      responsiveness check). Cadre's real favicon is used — the
+      challenge brief says nothing about brand/logo restrictions; an
+      earlier self-imposed "no imitation" caution didn't apply here
+      since this is Cadre's own chatbot, not third-party impersonation
+      (confirmed with the candidate before doing so)
+- [x] README.md with architecture, local setup, env vars, deployment,
+      model/provider rationale, grounding/escalation approach, testing
+      strategy, and explicit trade-offs/limitations
+Verify: **10/10 golden-set scenarios pass** on the live URL, both before
+and after the code-review fixes. **17/17 backend unit tests pass**
+(3 added this phase). Frontend `tsc -b && vite build` passes. Manually
+re-verified the full normal/escalation/multi-turn flow and the new
+error-rollback behavior in a real browser against the live deployment
+after every change in this phase.
+Commit: "Polish, README, final eval and compliance review" (actually
+landed as 5 separate commits — README, golden-set eval, favicon/plan.md
+cleanup, and the 3 code-review fixes — smaller and more descriptive than
+one combined commit)
 
 ## Phase 5 — Stretch (optional, only if time remains)
 - [ ] Simple in-memory per-IP rate limiting on `/api/chat`
