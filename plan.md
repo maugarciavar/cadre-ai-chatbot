@@ -98,17 +98,31 @@ right case study), and the oversized-message guardrail (422, confirmed
 the request never reached OpenRouter).
 Commit: "Add /api/chat endpoint with structured OpenRouter responses and history/length guardrails"
 
-## Phase 3 — Frontend chat UI (60–75 min)
+## Phase 3 — Frontend chat UI (60–75 min) — ✅ DONE 2026-08-10
 Goal: a usable interface a real prospective client could hold a
 conversation in — intentionally simple.
-- [ ] `ChatWindow`, `MessageBubble`, `MessageInput`, `EscalationBanner`
-- [ ] Client-side history in React state, resent each request
-- [ ] Loading state, network-error state, escalation banner on
-      `escalate: true`
-- [ ] No Redux/Zustand, no router, no UI framework beyond what genuinely
-      saves time
-Verify: `tsc --noEmit` + build pass; golden-set scenarios walked through
-by hand in the deployed UI.
+- [x] `ChatWindow`, `MessageBubble`, `MessageInput`, `EscalationBanner`
+      (plus starter-question chips, inline in ChatWindow — not a
+      separate file, only used in one place)
+- [x] Client-side history in React state, resent each request
+- [x] Loading state (typing-dots indicator, input disabled while
+      waiting), network/HTTP-error state (inline error banner),
+      escalation banner on `escalate: true`, Enter-to-send
+      (Shift+Enter for newline), send disabled on empty/whitespace input
+- [x] No Redux/Zustand, no router, no UI framework — plain React state
+      and hand-written CSS
+Verify: `tsc -b && vite build` passes. Deployed and driven with a real
+headless-Chromium browser (Playwright, since `chromium-cli` wasn't
+available on this machine) against the live URL — not just curl. Covered
+initial load, a starter-question click (normal grounded reply), a
+pricing question (escalation banner + confident tone), a multi-turn
+follow-up (correctly resolved prior context, cited the right case
+study), disabled-while-loading and disabled-on-empty input states, and
+zero browser console errors. **Found and fixed a real bug this way**:
+the message list overflowed behind the fixed input box on longer
+conversations (missing `min-height: 0` on the nested flex scroll
+container) — invisible to a curl-only check, caught by looking at an
+actual screenshot.
 Commit: "Build chat UI with escalation handling"
 
 ## Phase 4 — Eval pass, polish, compliance review, README (30–45 min)
