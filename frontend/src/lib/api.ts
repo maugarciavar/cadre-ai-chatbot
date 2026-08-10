@@ -1,13 +1,21 @@
+import type { ChatMessage, ChatResult } from '../types'
+
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
-export interface HealthStatus {
-  status: string
-}
+export async function sendChatMessage(message: string, history: ChatMessage[]): Promise<ChatResult> {
+  const response = await fetch(`${API_URL}/api/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, history }),
+  })
 
-export async function getHealth(): Promise<HealthStatus> {
-  const response = await fetch(`${API_URL}/api/health`)
   if (!response.ok) {
-    throw new Error(`Backend health check failed: ${response.status}`)
+    throw new Error(
+      response.status === 422
+        ? 'That message is too long. Please shorten it and try again.'
+        : `Chat request failed (${response.status})`,
+    )
   }
+
   return response.json()
 }
