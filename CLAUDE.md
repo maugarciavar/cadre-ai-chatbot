@@ -14,7 +14,7 @@ gitignored). cadreai.com may supplement factual company knowledge, never
 override or extend beyond what the challenge doc and site actually state.
 
 ## Architecture
-React (TS, Vite) -> FastAPI (Python) -> OpenAI API
+React (TS, Vite) -> FastAPI (Python) -> OpenRouter (OpenAI-compatible API)
 
 - Frontend and backend are **two separate Railway services deployed from
   the same monorepo** (Root Directory set per service: `frontend/` and
@@ -33,20 +33,32 @@ React (TS, Vite) -> FastAPI (Python) -> OpenAI API
 ## Stack
 - Frontend: React + TypeScript + Vite, deployed to Railway (service 1)
 - Backend: Python + FastAPI + Pydantic, deployed to Railway (service 2)
-- Model: selected via the `OPENAI_MODEL` environment variable — never
-  hardcoded in application code. Initial default: `gpt-5.6-luna`
-  ($0.20 input / $1.20 output per 1M tokens) — appropriate for a
-  constrained, curated-knowledge customer-support task. Confirmed against
-  OpenAI's official pricing docs:
-  https://developers.openai.com/api/docs/pricing (verified 2026-08-10).
-  Run the golden-set eval (see plan.md Phase 4) against it. If quality or
-  grounding is insufficient, manually change `OPENAI_MODEL` to a stronger
-  model (e.g. `gpt-5.6-terra`, $2.00/$12.00) and re-run the eval — there is
-  **no automatic runtime fallback** between models.
-  - Before implementation, re-check the pricing page above — prices and
-    the model lineup can change, and this project has already seen one
-    lookup return stale/conflicting data before a second lookup confirmed
-    the figures above.
+- AI provider: **OpenRouter**, not OpenAI directly — the provided API key
+  is an OpenRouter key with a **$5 total budget, expiring 7 days** from
+  issue (2026-08-10). OpenRouter exposes an OpenAI-compatible Chat
+  Completions API (not the newer Responses API — OpenRouter doesn't
+  support that), so the `openai` Python SDK is used unmodified, just
+  pointed at `base_url=https://openrouter.ai/api/v1`.
+- Model: selected via the `OPENROUTER_MODEL` environment variable — never
+  hardcoded in application code. Default: `openai/gpt-5.6-luna`
+  (OpenRouter requires a `provider/` prefix). Verified directly against
+  OpenRouter's own `/api/v1/models` catalog (fetched and parsed as raw
+  JSON, not a summarized page) on 2026-08-10: $0.10 input / $0.60 output
+  per 1M tokens, `structured_outputs` and `response_format` both present
+  in `supported_parameters`. At this price the $5 budget covers roughly
+  14,000+ typical exchanges, so budget was not the deciding factor among
+  cheap candidates — Luna was chosen because a constrained,
+  curated-knowledge support task needs reliable instruction-following,
+  not frontier reasoning. Run the golden-set eval (see plan.md Phase 4)
+  against it. If quality or grounding is insufficient, manually change
+  `OPENROUTER_MODEL` to a stronger model (e.g. `openai/gpt-5.6-terra`,
+  $1.00/$6.00 on OpenRouter) and re-run the eval — there is **no
+  automatic runtime fallback** between models.
+  - Model lineups and prices change. Re-verify against
+    `https://openrouter.ai/api/v1/models` (a public, unauthenticated
+    endpoint — fetch and parse the JSON directly rather than trusting a
+    summarized page) before relying on the figures above if significant
+    time has passed.
 - No database. No auth. No RAG / vector store. No LangGraph or any
   multi-agent orchestration framework.
 
@@ -61,9 +73,10 @@ cadre-ai-chatbot/
                                 service layer, returns ChatResult. No OpenAI
                                 SDK usage here.
   backend/app/services/
-    openai_client.py           The only file that imports the OpenAI SDK.
-                                Builds the request, calls the model, returns
-                                a ChatResult. Swappable for a fake in tests.
+    openrouter_client.py       The only file that imports the OpenAI SDK
+                                (pointed at OpenRouter's base_url). Builds
+                                the request, calls the model, returns a
+                                ChatResult. Swappable for a fake in tests.
   backend/app/knowledge/       cadre_knowledge.md + system_prompt.py
   backend/tests/                pytest suite + golden-set eval script
 ```
@@ -89,10 +102,11 @@ GET /api/health -> { "status": "ok" }
   crossing the API boundary. Settings via `pydantic-settings` reading env
   vars; never hardcode keys.
 - The OpenAI SDK is only ever imported and instantiated in
-  `backend/app/services/openai_client.py`. Routes (`routers/chat.py`) call
-  into that service and never touch the SDK directly — this keeps the
-  route thin and makes the Phase 2 mocked-client unit tests possible
-  without patching SDK internals.
+  `backend/app/services/openrouter_client.py` (pointed at OpenRouter, not
+  api.openai.com). Routes (`routers/chat.py`) call into that service and
+  never touch the SDK directly — this keeps the route thin and makes the
+  Phase 2 mocked-client unit tests possible without patching SDK
+  internals.
 - Frontend: functional components + hooks only. No Redux/Zustand, no
   router unless a real need appears, no UI framework beyond what saves
   real time — React state is sufficient at this scope.
@@ -118,7 +132,7 @@ GET /api/health -> { "status": "ok" }
 - The backend enforces `MAX_HISTORY_MESSAGES` and `MAX_MESSAGE_LENGTH` on
   incoming requests as simple safeguards. This is not token-counting
   infrastructure — just a hard cap enforced before the request reaches
-  OpenAI.
+  OpenRouter.
 - Don't add anything from the Phase 5 stretch list until Phases 0–4 are
   done and verified.
 - Don't introduce a database, auth system, RAG pipeline, or agent

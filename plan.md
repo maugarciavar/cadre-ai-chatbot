@@ -63,24 +63,33 @@ deliberately left unchanged after a quoted phrase couldn't be verified
 against any available source.
 Commit: "Add curated Cadre knowledge base and system prompt assembly"
 
-## Phase 2 — Chat endpoint + OpenAI integration (60–75 min)
+## Phase 2 — Chat endpoint + OpenRouter integration (60–75 min)
 Goal: wire the real conversation path with typed, structured output, and
 a configurable, not hardcoded, model.
+
+**Provider correction mid-phase:** the assessment's chatbot API key is an
+OpenRouter key ($5 budget, 7-day expiry), not a direct OpenAI key —
+confirmed with the recruiter. OpenRouter exposes an OpenAI-compatible
+Chat Completions API only (no Responses API), so the plan below was
+adjusted: `client.chat.completions.parse()` instead of
+`client.responses.parse()`, `base_url` pointed at OpenRouter, and
+`OPENAI_*` env vars/module names renamed to `OPENROUTER_*` throughout.
 - [ ] `ChatMessage` / `ChatRequest` / `ChatResult` Pydantic models
       (`ChatResult`: `reply: str`, `escalate: bool`)
-- [ ] `services/openai_client.py`: model id read from `OPENAI_MODEL` env
-      var (single configured value, no automatic fallback logic),
-      structured output bound to `ChatResult`. This is the only module
-      that imports the OpenAI SDK.
+- [ ] `services/openrouter_client.py`: model id read from
+      `OPENROUTER_MODEL` env var (single configured value, no automatic
+      fallback logic), structured output bound to `ChatResult` via
+      `chat.completions.parse()`. This is the only module that imports
+      the OpenAI SDK.
 - [ ] `routers/chat.py` (`POST /api/chat`): enforce `MAX_HISTORY_MESSAGES`
-      (truncate oldest turns) and `MAX_MESSAGE_LENGTH` (reject/trim), then
-      delegate to `services/openai_client.py` — no direct SDK calls in the
-      route
+      (truncate oldest turns) and `MAX_MESSAGE_LENGTH` (reject), then
+      delegate to `services/openrouter_client.py` — no direct SDK calls
+      in the route
 - [ ] Unit tests against a mocked client: normal path, escalation path,
       history-truncation, oversized-message handling
 Verify: `pytest` green; manual curl smoke test against the deployed
-backend Railway URL.
-Commit: "Add /api/chat endpoint with structured OpenAI responses and history/length guardrails"
+backend Railway URL once `OPENROUTER_API_KEY` is set.
+Commit: "Add /api/chat endpoint with structured OpenRouter responses and history/length guardrails"
 
 ## Phase 3 — Frontend chat UI (60–75 min)
 Goal: a usable interface a real prospective client could hold a
