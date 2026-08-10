@@ -1,0 +1,50 @@
+# === Secrets & environment ===
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# === Local reference material (keep locally, do not distribute) ===
+docs/
+
+# === Python (backend) ===
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+pip-wheel-metadata/
+
+# === Node / React / Vite (frontend) ===
+node_modules/
+dist/
+dist-ssr/
+build/
+.vite/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# === Editors / OS ===
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# === Logs ===
+*.log
+logs/
+
+# === Deployment ===
+.vercel/
+.railway/
