@@ -166,6 +166,35 @@ landed as 5 separate commits — README, golden-set eval, favicon/plan.md
 cleanup, and the 3 code-review fixes — smaller and more descriptive than
 one combined commit)
 
+## Post-Phase-4 — Engineering hygiene (pre-submission) — ✅ DONE 2026-08-10
+Goal: a focused hygiene pass (linting, CI, API docs) requested before
+final submission. Reviewed first (what exists / what's missing / risk
+per change), approved, then implemented exactly the approved scope --
+nothing else.
+- [x] `ruff` added as a backend dev dependency (no config file needed).
+      One legitimate finding (unused `pytest` import in a test file),
+      fixed.
+- [x] `.github/workflows/ci.yml`: backend (install → ruff → pytest) and
+      frontend (npm ci → lint → build) on push/PR. No live OpenRouter
+      calls -- `eval_golden_set.py` was never pytest-discoverable in
+      the first place (doesn't match `test_*.py`), so nothing needed
+      excluding. **Verified green on GitHub itself** (`gh run watch`),
+      not just assumed from a working local command.
+- [x] Swagger/OpenAPI: `Field(description=...)` on every request/response
+      model field (especially `escalate` and `history`, the two least
+      self-explanatory), documented `422`/`503` responses with examples
+      on `POST /api/chat`, `GET /api/health` now returns a typed
+      `HealthStatus` model instead of a bare dict, real app
+      `description`/`version`. Fetched the actual live `/openapi.json`
+      after deploying to confirm every change rendered correctly, not
+      just read from source.
+Verify: 17/17 backend tests + ruff clean + frontend lint/build clean,
+locally and in the now-green CI run. Live `/docs`, `/openapi.json`, and
+`/api/health` inspected post-deploy. Full normal/escalation/multi-turn
+browser verification re-run against the live app -- unaffected, as
+expected (no application logic changed).
+Commit: "Add ruff, GitHub Actions CI, and improved Swagger/OpenAPI docs"
+
 ## Phase 5 — Stretch (optional, only if time remains)
 - [ ] Simple in-memory per-IP rate limiting on `/api/chat`
 - [ ] Streaming responses (SSE) instead of one JSON blob
