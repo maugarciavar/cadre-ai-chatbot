@@ -137,8 +137,13 @@ challenge's own deliverables are met, then make it presentable.
       deployed URL works, `CLAUDE.md` and `plan.md` are present at repo
       root, no secrets/`.env` files are committed, out-of-scope items are
       genuinely absent, README is present and accurate
-- [ ] Light UI polish (responsive layout, favicon, page title) — no
-      imitation of Cadre's real brand identity
+- [ ] Light UI polish (responsive layout, favicon, page title). Note:
+      the challenge brief itself says nothing about brand/logo usage --
+      an earlier draft of this plan self-imposed a "no imitation of
+      Cadre's brand" rule out of general caution, but this is Cadre's
+      own chatbot for Cadre AI, not third-party impersonation, so
+      Cadre's real favicon is used directly (confirmed with the
+      candidate before doing so)
 - [ ] README with setup / run / deploy instructions (two Railway
       services)
 Verify: all golden-set scenarios behave as expected on the live URL;
@@ -155,10 +160,12 @@ Commit: "Polish, README, final eval and compliance review"
   between the two services) — mitigated by Phase 0.
 - Model hallucinating facts not in the knowledge file — mitigated by the
   system-prompt guardrail + golden-set eval in Phase 4.
-- Model lineup/pricing assumptions going stale — `gpt-5.6-luna` pricing
-  was confirmed 2026-08-10 against
-  https://developers.openai.com/api/docs/pricing, but `OPENAI_MODEL`
-  stays fully config-driven; re-verify against that page before
-  implementation if time has passed.
+- Model lineup/pricing assumptions going stale — `openai/gpt-5.6-luna`
+  pricing on OpenRouter was confirmed 2026-08-10 directly against
+  https://openrouter.ai/api/v1/models (the actual provider used, per the
+  Phase 2 correction below -- not developers.openai.com, which was the
+  pre-correction assumption). `OPENROUTER_MODEL` stays fully
+  config-driven; re-verify against that endpoint if significant time has
+  passed.
 - Running over budget — Phase 5 is explicitly cuttable; Phases 0–4 are the
   real MVP.
