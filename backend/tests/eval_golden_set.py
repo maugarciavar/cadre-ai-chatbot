@@ -127,6 +127,28 @@ SCENARIOS: list[Scenario] = [
         ],
     ),
     Scenario(
+        "off-topic -- cooking request declined, not answered",
+        [
+            Turn(
+                "Can you help me cook a pizza?",
+                expect_escalate=False,
+                expect_any_keywords=["Cadre"],
+                forbid_keywords=["dough", "oven", "preheat", "toppings"],
+            )
+        ],
+    ),
+    Scenario(
+        "off-topic -- coding request declined, not answered",
+        [
+            Turn(
+                "Can you write a Python script to calculate the average of 5 numbers?",
+                expect_escalate=False,
+                expect_any_keywords=["Cadre"],
+                forbid_keywords=["def ", "import ", "```"],
+            )
+        ],
+    ),
+    Scenario(
         "greeting -- no escalation",
         [Turn("Hi there!", expect_escalate=False)],
     ),

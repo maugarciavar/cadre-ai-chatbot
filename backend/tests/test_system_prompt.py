@@ -55,3 +55,15 @@ def test_prompt_treats_escalation_as_non_failure():
     assert "never apologize" in lowered or "not sound uncertain" in lowered or "sound uncertain" in lowered
     assert "hello@gocadre.ai" in prompt
     assert "escalate: false" in lowered
+
+
+def test_prompt_instructs_off_topic_redirect():
+    prompt = build_system_prompt()
+    lowered = prompt.lower()
+
+    # Off-topic requests (cooking, coding, weather, etc.) must be redirected
+    # rather than answered, and must not escalate -- distinct from an
+    # unsupported but genuinely Cadre-specific question.
+    assert "unrelated to cadre ai entirely" in lowered
+    assert "do not answer the underlying request" in lowered
+    assert "i'm here to help with questions about cadre ai" in lowered
