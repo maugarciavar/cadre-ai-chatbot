@@ -1,6 +1,6 @@
 # Cadre AI Chatbot
 
-A customer support chatbot for [Cadre AI](https://cadreai.com), an AI strategy and implementation consultancy — built for Cadre's AI Engineer & FDE take-home challenge.
+A customer support chatbot for [Cadre AI](https://cadreai.com), an AI strategy and implementation consultancy 
 
 **Live app:** https://frontend-production-82ea.up.railway.app
 **Backend API docs (Swagger UI):** https://backend-production-900e.up.railway.app/docs
@@ -126,4 +126,4 @@ One real bug found and fixed during Phase 3: the message list rendered behind th
 **Known limitations at submission:**
 - The eval script's keyword matching is naive (see above) — a real LLM-judge eval would be a natural next step with more time.
 - `gpt-5.6-luna`, being a smaller/cheaper model, occasionally showed minor non-determinism in escalate-flag consistency on borderline "already fully answered" follow-ups during testing (not a hard failure — over-escalating is a safe direction, not a harmful one).
-- No rate limiting on `/api/chat` — acceptable for a scoped take-home demo, would be a first addition before any real-world exposure.
+- No rate limiting on `/api/chat` — would be a first addition before any real-world exposure.
